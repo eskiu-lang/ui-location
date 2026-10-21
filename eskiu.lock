@@ -1,0 +1,3 @@
+# eskiu.lock: written by eskiuc (eskiuc fetch updates it); do not edit.
+location	root	.
+ui	git	https://github.com/eskiu-lang/ui	HEAD	b85799915c788869b604c60ad6ec63ebe5f585f9

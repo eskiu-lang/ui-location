@@ -1,0 +1,5 @@
+[app]
+name = "Where"
+
+[ios.plist]
+NSLocationWhenInUseUsageDescription = "Where shows your position and how far you are from a few cities"

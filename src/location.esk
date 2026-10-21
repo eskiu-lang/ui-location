@@ -1,0 +1,105 @@
+// <location>: where the device is, for apps on eskiu-lang/ui. use_location gives a component
+// the latest position while it is mounted; the platform's location service measures it
+// (CoreLocation on iOS, LocationManager on Android, navigator.geolocation on the web), after
+// asking the user for permission the first time.
+import <string>;
+import <list>;
+import <math>;
+import <ui>;
+
+enum LocationStatus { LocationWaiting, LocationReady, LocationDenied, LocationUnavailable }
+
+// A position. `status` is a LocationStatus; the rest is meaningful once it is LocationReady.
+// latitude and longitude are degrees, accuracy the radius in meters the position is within,
+// altitude meters above sea level (when has_altitude), speed meters per second and heading
+// degrees clockwise from north (-1 when the platform does not know them), time when it was
+// measured (milliseconds since 1970).
+struct Location {
+    int status;
+    double latitude; double longitude; double accuracy;
+    bool has_altitude; double altitude;
+    double speed = -1; double heading = -1;
+    int64 time;
+}
+
+// The platform's side (native/ios, native/android, native/web): start measuring, as precisely
+// as the device can when `precise` is 1 (else to about a hundred meters), and stop. Positions
+// and failures come back on the "location" channel: "fix LATITUDE LONGITUDE ACCURACY ALTITUDE
+// SPEED HEADING TIME" (ALTITUDE "-" when unknown), "denied" or "unavailable".
+extern void location_start(int precise);
+extern void location_stop();
+
+// The latest position or failure, shared by every component that uses it, and how many are
+// mounted (the service runs while one is).
+Location location_latest;
+int location_users;
+
+// A message on the "location" channel into location_latest.
+void location_read(string payload) {
+    if (payload == null) { return; }
+    if (strcmp(payload, "denied") == 0) { location_latest.status = LocationDenied; return; }
+    if (strcmp(payload, "unavailable") == 0) { location_latest.status = LocationUnavailable; return; }
+    String text;
+    defer String_free(&text);
+    String_from(&text, payload);
+    List<String> parts;
+    String_split(&text, ' ', &parts);
+    if (parts.size == 8 && String_eq_cstr(&parts.data[0], "fix") == 1) {
+        Location fix;
+        fix.status = LocationReady;
+        fix.latitude = String_to_double(&parts.data[1]);
+        fix.longitude = String_to_double(&parts.data[2]);
+        fix.accuracy = String_to_double(&parts.data[3]);
+        fix.has_altitude = String_eq_cstr(&parts.data[4], "-") != 1;
+        if (fix.has_altitude) { fix.altitude = String_to_double(&parts.data[4]); }
+        fix.speed = String_to_double(&parts.data[5]);
+        fix.heading = String_to_double(&parts.data[6]);
+        fix.time = (int64)String_to_double(&parts.data[7]);
+        location_latest = fix;
+    }
+    for (i in 0..parts.size) { String_free(&parts.data[i]); }
+    parts.free();
+}
+
+// The latest position while the calling scope is mounted; the scope renders again with each
+// new one. The first use starts the platform's service (and asks for permission), the last
+// one to unmount stops it. `precise` asks for the device's best accuracy rather than about a
+// hundred meters, which saves power; the first component to mount decides.
+Location use_location(bool precise) {
+    *Signal<int> updates = use_signal<int>(0);
+    use_native_event("location", void(string payload) {
+        location_read(payload);
+        updates.set(updates.value + 1);
+    });
+    use_mount(void() {
+        location_users++;
+        if (location_users == 1) {
+            location_latest = Location{};
+            location_start(precise ? 1 : 0);
+        }
+    }, void() {
+        location_users--;
+        if (location_users == 0) { location_stop(); }
+    });
+    updates.get();
+    return location_latest;
+}
+
+// The latest position or failure, without subscribing: what the last component saw.
+Location location_last() { return location_latest; }
+
+// libm's, as <libc> declares them (<math> has no trigonometry).
+extern double sin(double x);
+extern double cos(double x);
+extern double atan2(double y, double x);
+
+// The distance between two positions in meters, over the Earth's surface (haversine, on a
+// sphere of the Earth's mean radius).
+double location_distance(Location a, Location b) {
+    double radians = 3.141592653589793 / 180.0;
+    double dlat = (b.latitude - a.latitude) * radians;
+    double dlon = (b.longitude - a.longitude) * radians;
+    double h = sin(dlat / 2.0) * sin(dlat / 2.0) +
+               cos(a.latitude * radians) * cos(b.latitude * radians) * sin(dlon / 2.0) * sin(dlon / 2.0);
+    return 2.0 * 6371008.8 * atan2(sqrt(h), sqrt(1.0 - h));
+}

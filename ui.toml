@@ -1,0 +1,10 @@
+# What an app that depends on this package gets. An app's own ui.toml wins for the same key,
+# so it can say in its own words why it asks for the location.
+[ios]
+frameworks = ["CoreLocation"]
+
+[ios.plist]
+NSLocationWhenInUseUsageDescription = "Shows where you are"
+
+[android]
+permissions = ["android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"]

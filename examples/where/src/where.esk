@@ -1,0 +1,155 @@
+// The app's screen: a card with the position, the cities around the world and their
+// distance, and copy and share.
+import <string>;
+import <ui>;
+import <ui/kit>;
+import <location>;
+
+int64 ink() { return rgb(17, 24, 39); }
+int64 muted() { return rgb(107, 114, 128); }
+int64 page() { return rgb(245, 246, 250); }
+int64 card() { return rgb(255, 255, 255); }
+int64 line() { return rgb(229, 231, 235); }
+int64 teal() { return rgb(13, 148, 136); }
+int64 teal_soft() { return rgb(204, 251, 241); }
+int64 amber() { return rgb(217, 119, 6); }
+int64 amber_soft() { return rgb(254, 243, 199); }
+int64 rose() { return rgb(225, 29, 72); }
+int64 rose_soft() { return rgb(255, 228, 230); }
+
+struct City { string name; string flag; double latitude; double longitude; }
+
+City city(int i) {
+    if (i == 0) { return City{"Mexico City", "🇲🇽", 19.4326, -99.1332}; }
+    if (i == 1) { return City{"Lisbon", "🇵🇹", 38.7223, -9.1393}; }
+    if (i == 2) { return City{"Kyoto", "🇯🇵", 35.0116, 135.7681}; }
+    return City{"Reykjavik", "🇮🇸", 64.1466, -21.9426};
+}
+
+// "Live" in teal, "Locating" in amber, a failure in rose.
+void StatusPill(Location here) {
+    string text = "Locating";
+    int64 color = amber();
+    int64 soft = amber_soft();
+    if (here.status == LocationReady) { text = "Live"; color = teal(); soft = teal_soft(); }
+    else if (here.status == LocationDenied) { text = "No permission"; color = rose(); soft = rose_soft(); }
+    else if (here.status == LocationUnavailable) { text = "Unavailable"; color = rose(); soft = rose_soft(); }
+    Row(Style{padding: 8, gap: 8, radius: 999, background: soft, align: AlignCenter, label: text}, void() {
+        Row(Style{width: 8, height: 8, radius: 4, background: color}, void() {});
+        TextWith(Style{font_size: 13, font_weight: 700, color: color}, text);
+    });
+}
+
+void Detail(string label, string value) {
+    Column(Style{width: 1, grow: 1, gap: 2}, void() {
+        TextWith(Style{font_size: 13, color: rgba(255, 255, 255, 170)}, label);
+        TextWith(Style{font_size: 17, font_weight: 700, color: rgb(255, 255, 255)}, value);
+    });
+}
+
+void PositionCard(Location here) {
+    Column(Style{padding: 22, gap: 16, radius: 24, background: ink(), shadow: 10}, void() {
+        TextWith(Style{font_size: 13, font_weight: 700, color: rgba(255, 255, 255, 170)}, "YOUR POSITION");
+        String text;
+        defer String_free(&text);
+        if (here.status == LocationReady) {
+            // A line each: 19.43260° N, 99.13320° W.
+            String_format(&text, "%.5f° %s", here.latitude >= 0 ? here.latitude : -here.latitude, here.latitude >= 0 ? "N" : "S");
+            Column(Style{gap: 2}, void() {
+                TextWith(Style{font_size: 30, font_weight: 800, color: rgb(255, 255, 255)}, text.data);
+                String east;
+                defer String_free(&east);
+                String_format(&east, "%.5f° %s", here.longitude >= 0 ? here.longitude : -here.longitude, here.longitude >= 0 ? "E" : "W");
+                TextWith(Style{font_size: 30, font_weight: 800, color: rgb(255, 255, 255)}, east.data);
+            });
+            Row(Style{gap: 12}, void() {
+                String value;
+                defer String_free(&value);
+                String_format(&value, "± %.0f m", here.accuracy);
+                Detail("Accuracy", value.data);
+                String_clear(&value);
+                if (here.has_altitude) { String_format(&value, "%.0f m", here.altitude); } else { String_from(&value, "Unknown"); }
+                Detail("Altitude", value.data);
+                String_clear(&value);
+                if (here.speed >= 0) { String_format(&value, "%.0f km/h", here.speed * 3.6); } else { String_from(&value, "Unknown"); }
+                Detail("Speed", value.data);
+            });
+        } else if (here.status == LocationDenied) {
+            TextWith(Style{font_size: 22, font_weight: 800, color: rgb(255, 255, 255)}, "Location is off for Where");
+            TextWith(Style{font_size: 15, color: rgba(255, 255, 255, 200)},
+                "Allow it in the system's settings to see your position here.");
+        } else if (here.status == LocationUnavailable) {
+            TextWith(Style{font_size: 22, font_weight: 800, color: rgb(255, 255, 255)}, "No position available");
+            TextWith(Style{font_size: 15, color: rgba(255, 255, 255, 200)},
+                "Location services are off, or the device cannot find itself right now.");
+        } else {
+            TextWith(Style{font_size: 22, font_weight: 800, color: rgb(255, 255, 255)}, "Finding you…");
+            ActivityIndicator(Style{}, true);
+        }
+    });
+}
+
+void CityRow(Location here, int i) {
+    City c = city(i);
+    Row(Style{key: key(i), padding: 14, gap: 14, radius: 18, background: card(), border_width: 1, border_color: line(),
+              align: AlignCenter, label: c.name}, void() {
+        Row(Style{width: 44, height: 44, radius: 12, background: page(), align: AlignCenter, justify: JustifyCenter},
+            void() { TextWith(Style{font_size: 24}, c.flag); });
+        TextWith(Style{grow: 1, font_size: 17, font_weight: 700, color: ink()}, c.name);
+        String distance;
+        defer String_free(&distance);
+        if (here.status == LocationReady) {
+            Location there = Location{status: LocationReady, latitude: c.latitude, longitude: c.longitude};
+            double km = location_distance(here, there) / 1000.0;
+            if (km < 10) { String_format(&distance, "%.1f km", km); } else { String_format(&distance, "%.0f km", km); }
+        } else { String_from(&distance, "…"); }
+        TextWith(Style{font_size: 16, font_weight: 600, color: muted()}, distance.data);
+    });
+}
+
+void Where() {
+    Column(Style{grow: 1, background: page(), gap: 0}, void() {
+        StatusBar(BarDark, false);
+        Location here = use_location(true);
+        Scroll(Style{grow: 1, padding: 20, gap: 18}, void() {
+            Row(Style{align: AlignCenter, gap: 12}, void() {
+                Column(Style{grow: 1, gap: 2}, void() {
+                    TextWith(Style{font_size: 15, color: muted()}, "Right now");
+                    TextWith(Style{font_size: 34, font_weight: 800, color: ink()}, "Where");
+                });
+                StatusPill(here);
+            });
+            PositionCard(here);
+            // Copy and share wait for a position.
+            Row(Style{gap: 12, opacity: here.status == LocationReady ? 100 : 45}, void() {
+                // The handlers run after this render: they take the numbers, not a text it frees.
+                bool ready = here.status == LocationReady;
+                double latitude = here.latitude;
+                double longitude = here.longitude;
+                Column(Style{width: 1, grow: 1, gap: 0}, void() {
+                    KitButton("Copy", VariantSecondary, void() {
+                        if (!ready) { return; }
+                        String coordinates;
+                        defer String_free(&coordinates);
+                        String_format(&coordinates, "%.5f, %.5f", latitude, longitude);
+                        ui_clipboard_set(coordinates.data);
+                        ui_haptic(HapticSuccess);
+                        kit_toast("Coordinates copied");
+                    });
+                });
+                Column(Style{width: 1, grow: 1, gap: 0}, void() {
+                    KitButton("Share", VariantPrimary, void() {
+                        if (!ready) { return; }
+                        String url;
+                        defer String_free(&url);
+                        String_format(&url, "https://maps.apple.com/?ll=%.5f,%.5f", latitude, longitude);
+                        ui_share("I'm here", url.data);
+                    });
+                });
+            });
+            TextWith(Style{font_size: 20, font_weight: 700, color: ink()}, "How far is it");
+            Column(Style{gap: 10}, void() { for (i in 0..4) { CityRow(here, i); } });
+        });
+        ToastHost();
+    });
+}

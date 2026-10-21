@@ -1,0 +1,101 @@
+// <location> with no device: the platform's side is two stand-ins that count their calls, and
+// the test sends the events a platform would. Each check that fails exits with 1.
+import <io>;
+import <string>;
+import <ui>;
+import <location>;
+
+int starts;
+int stops;
+int precise_asked;
+
+void location_start(int precise) { starts++; precise_asked = precise; }
+
+void location_stop() { stops++; }
+
+// The texts the last commits set, by node id.
+String shown;
+
+void check(bool ok, string what) {
+    if (!ok) {
+        printf("FAIL %s (shown: %s)\n", what, shown.data == null ? "" : shown.data);
+        exit(1);
+    }
+}
+
+*Signal<int> mounted;
+
+void Where() {
+    Scope("Where", Key{}, void() {
+        Location here = use_location(true);
+        String text;
+        defer String_free(&text);
+        if (here.status == LocationReady) { String_format(&text, "%.4f,%.4f ±%.0f m", here.latitude, here.longitude, here.accuracy); }
+        else if (here.status == LocationDenied) { String_from(&text, "denied"); }
+        else if (here.status == LocationUnavailable) { String_from(&text, "unavailable"); }
+        else { String_from(&text, "waiting"); }
+        Text(text.data);
+    });
+}
+
+int main() {
+    Ui runtime;
+    ui_init(&runtime, void(*uint8 data, int len) {
+        List<Mutation> items;
+        ui_decode(data, len, &items);
+        for (i in 0..items.size) {
+            if (items.data[i].op == 3) { String_from(&shown, items.data[i].text); }
+        }
+        items.free();
+        ui_complete(ui.sequence);
+    });
+    mounted = signal_new<int>(2);
+    ui_mount(void() {
+        Column(Style{}, void() {
+            int count = mounted.get();
+            for (i in 0..count) { Row(Style{key: key(i)}, void() { Where(); }); }
+        });
+    });
+    ui_frame();
+    check(starts == 1 && precise_asked == 1, "two components start the service once");
+    check(String_eq_cstr(&shown, "waiting") == 1, "waiting before the first position");
+
+    ui_event_native("location", "fix 19.4326077 -99.1332080 12.50 2240.00 1.25 90.00 1792600000000");
+    ui_frame();
+    check(String_eq_cstr(&shown, "19.4326,-99.1332 ±12 m") == 1, "a position renders");
+    Location last = location_last();
+    check(last.has_altitude && last.altitude == 2240.0 && last.speed == 1.25 && last.heading == 90.0 &&
+          last.time == 1792600000000, "every field read");
+
+    ui_event_native("location", "fix 19.43 -99.13 30 - -1 -1 1792600001000");
+    ui_frame();
+    check(!location_last().has_altitude && location_last().speed == -1, "unknown altitude and speed");
+
+    ui_event_native("location", "denied");
+    ui_frame();
+    check(String_eq_cstr(&shown, "denied") == 1, "a denied permission renders");
+
+    mounted.set(1);
+    ui_frame();
+    check(stops == 0, "the service runs while one component is mounted");
+    mounted.set(0);
+    ui_frame();
+    check(stops == 1, "the last one to unmount stops it");
+
+    mounted.set(1);
+    ui_frame();
+    check(starts == 2 && location_last().status == LocationWaiting, "mounting again starts afresh");
+    ui_shutdown();
+    check(stops == 2, "shutting down stops it");
+    mounted.free();
+
+    // Paris to London: about 343.6 km over the surface.
+    Location paris = Location{status: LocationReady, latitude: 48.8566, longitude: 2.3522};
+    Location london = Location{status: LocationReady, latitude: 51.5074, longitude: -0.1278};
+    double km = location_distance(paris, london) / 1000.0;
+    check(km > 343.0 && km < 344.5, "the distance from Paris to London");
+    check(location_distance(paris, paris) == 0.0, "no distance to itself");
+    printf("PASS location\n");
+    String_free(&shown);
+    return 0;
+}

@@ -1,0 +1,9 @@
+// Where: the device's position, how precise it is, and how far a few cities are.
+// `ui run ios` (or android, web).
+import "where.esk";
+
+void ui_app_start(int which) {
+    ui_mount(void() { Where(); });
+}
+
+void ui_app_stop() {}
