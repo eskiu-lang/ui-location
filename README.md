@@ -34,6 +34,9 @@ In an app made with `ui new`:
 eskiuc add location --git https://github.com/eskiu-lang/ui-location
 ```
 
+With Eskiu 0.12.0, run `eskiuc fetch` after adding it if `ui` was fetched before on this
+machine: 0.12.0 can resolve `ui` to the commit it fetched then (fixed in 0.13).
+
 The package brings what each platform needs through its `ui.toml`: the CoreLocation framework
 and a usage text on iOS, the location permissions on Android. Put your own text in the app's
 `ui.toml`, which wins over the package's:
