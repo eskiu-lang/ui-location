@@ -3,7 +3,7 @@
 import "where.esk";
 
 void ui_app_start(int which) {
-    ui_mount(void() { Where(); });
+    ui_mount() { Where(); }
 }
 
 void ui_app_stop() {}

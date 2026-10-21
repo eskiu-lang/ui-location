@@ -26,7 +26,7 @@ void check(bool ok, string what) {
 *Signal<int> mounted;
 
 void Where() {
-    Scope("Where", Key{}, void() {
+    Scope("Where", Key{}) {
         Location here = use_location(true);
         String text;
         defer String_free(&text);
@@ -35,7 +35,7 @@ void Where() {
         else if (here.status == LocationUnavailable) { String_from(&text, "unavailable"); }
         else { String_from(&text, "waiting"); }
         Text(text.data);
-    });
+    }
 }
 
 int main() {
@@ -50,12 +50,12 @@ int main() {
         ui_complete(ui.sequence);
     });
     mounted = signal_new<int>(2);
-    ui_mount(void() {
-        Column(Style{}, void() {
+    ui_mount() {
+        Column(Style{}) {
             int count = mounted.get();
             for (i in 0..count) { Row(Style{key: key(i)}, void() { Where(); }); }
-        });
-    });
+        }
+    }
     ui_frame();
     check(starts == 1 && precise_asked == 1, "two components start the service once");
     check(String_eq_cstr(&shown, "waiting") == 1, "waiting before the first position");
