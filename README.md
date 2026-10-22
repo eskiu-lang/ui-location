@@ -31,7 +31,7 @@ platform's own service measures it: CoreLocation on iOS, `LocationManager` on An
 In an app made with `ui new`:
 
 ```bash
-eskiuc add location --git https://github.com/eskiu-lang/ui-location --rev v0.1.0
+eskiuc add location --git https://github.com/eskiu-lang/ui-location --rev v0.1.1
 ```
 
 The package brings what each platform needs through its `ui.toml`: the CoreLocation framework
