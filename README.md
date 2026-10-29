@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="https://github.com/eskiu-lang/ui-location/actions/workflows/ci.yml"><img src="https://github.com/eskiu-lang/ui-location/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/version-0.1.0-6448d4" alt="Version 0.1.0">
+  <img src="https://img.shields.io/badge/version-0.1.2-6448d4" alt="Version 0.1.2">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
 </p>
 
@@ -31,7 +31,7 @@ platform's own service measures it: CoreLocation on iOS, `LocationManager` on An
 In an app made with `ui new`:
 
 ```bash
-eskiuc add location --git https://github.com/eskiu-lang/ui-location --rev v0.1.1
+eskiuc add location --git https://github.com/eskiu-lang/ui-location --rev v0.1.2
 ```
 
 The package brings what each platform needs through its `ui.toml`: the CoreLocation framework
