@@ -106,6 +106,10 @@ side that count their calls and the events a platform would send: one service fo
 components, every field of a position, unknown altitude and speed, a denied permission, the
 stop when the last component unmounts, and the distance from Paris to London.
 
+## Documentation
+
+Every public function and type, with its documentation, is in the [API reference](docs/api.md).
+
 ## License
 
 MIT
