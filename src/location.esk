@@ -7,6 +7,8 @@ import <list>;
 import <math>;
 import <ui>;
 
+// Where a Location stands: waiting for the first position, a position is ready, the user
+// denied the permission, or the service is off or cannot find the device.
 enum LocationStatus { LocationWaiting, LocationReady, LocationDenied, LocationUnavailable }
 
 // A position. `status` is a LocationStatus; the rest is meaningful once it is LocationReady.
