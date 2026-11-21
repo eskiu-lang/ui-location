@@ -47,6 +47,17 @@ void location_read(string payload)
 
 A message on the "location" channel into location_latest.
 
+### location_supported
+
+```eskiu
+bool location_supported()
+```
+
+Whether the device can measure where it is, known before use_location mounts: true on iOS
+(every iPhone has location services), on Android with FEATURE_LOCATION and in a browser
+with navigator.geolocation; false on the desktop. True does not mean the user allowed it or
+that the service is on: use_location says LocationDenied or LocationUnavailable then.
+
 ### use_location
 
 ```eskiu
