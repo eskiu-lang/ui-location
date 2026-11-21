@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="https://github.com/eskiu-packages/ui-location/actions/workflows/ci.yml"><img src="https://github.com/eskiu-packages/ui-location/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/version-0.1.5-6448d4" alt="Version 0.1.5">
+  <img src="https://img.shields.io/badge/version-0.1.6-6448d4" alt="Version 0.1.6">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
 </p>
 
@@ -42,7 +42,7 @@ for permission. Windows has no location yet: there `use_location` says `Location
 In an app made with `ui new`:
 
 ```bash
-eskiuc add location --git https://github.com/eskiu-packages/ui-location --rev v0.1.5
+eskiuc add location --git https://github.com/eskiu-packages/ui-location --rev v0.1.6
 ```
 
 The package brings what each platform needs through its `ui.toml`: the CoreLocation framework
