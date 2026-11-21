@@ -1,6 +1,7 @@
 // <location> on the web: navigator.geolocation, as an emscripten library defining the
 // externs. The browser asks for permission on the first watch.
 mergeInto(LibraryManager.library, {
+  location_native_supported: function() { return navigator.geolocation ? 1 : 0; },
   location_start: function(precise) {
     if (!navigator.geolocation) { Module.uiEmit('location', 'unavailable'); return; }
     if (Module.locationWatch != null) navigator.geolocation.clearWatch(Module.locationWatch);

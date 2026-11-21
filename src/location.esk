@@ -63,6 +63,24 @@ void location_read(string payload) {
     parts.free();
 }
 
+// The platform's side of location_supported (native/android, native/web): 1 when the device
+// has a location service (Android's FEATURE_LOCATION, the browser's navigator.geolocation).
+extern int location_native_supported();
+
+// Whether the device can measure where it is, known before use_location mounts: true on iOS
+// (every iPhone has location services), on Android with FEATURE_LOCATION and in a browser
+// with navigator.geolocation; false on the desktop. True does not mean the user allowed it or
+// that the service is on: use_location says LocationDenied or LocationUnavailable then.
+bool location_supported() {
+#if defined(TARGET_OS_IOS)
+    return true;
+#elif defined(__ANDROID__) || defined(__wasm__)
+    return location_native_supported() != 0;
+#else
+    return false;
+#endif
+}
+
 // The latest position while the calling scope is mounted; the scope renders again with each
 // new one. The first use starts the platform's service (and asks for permission), the last
 // one to unmount stops it. `precise` asks for the device's best accuracy rather than about a

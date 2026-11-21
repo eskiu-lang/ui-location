@@ -19,6 +19,12 @@ public final class EskiuLocation {
 
     public static void setup() {}
 
+    // location_supported (location.c): the device has a location service.
+    public static boolean supported() {
+        android.app.Activity activity = org.eskiu.ui.UiActivity.current();
+        return activity != null && activity.getPackageManager().hasSystemFeature(android.content.pm.PackageManager.FEATURE_LOCATION);
+    }
+
     public static void start(boolean precise) {
         Activity activity = UiActivity.current();
         if (activity == null) return;

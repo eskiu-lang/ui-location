@@ -95,6 +95,8 @@ int main() {
     double km = location_distance(paris, london) / 1000.0;
     check(km > 343.0 && km < 344.5, "the distance from Paris to London");
     check(location_distance(paris, paris) == 0.0, "no distance to itself");
+    // No location service on the desktop, said before use_location mounts.
+    check(!location_supported(), "no location on the desktop");
     printf("PASS location\n");
     String_free(&shown);
     return 0;
