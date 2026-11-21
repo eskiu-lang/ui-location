@@ -8,3 +8,10 @@ NSLocationWhenInUseUsageDescription = "Shows where you are"
 
 [android]
 permissions = ["android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"]
+
+[macos]
+frameworks = ["CoreLocation"]
+
+[macos.plist]
+NSLocationUsageDescription = "Shows where you are"
+NSLocationWhenInUseUsageDescription = "Shows where you are"
