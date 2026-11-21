@@ -1,7 +1,8 @@
 // <location>: where the device is, for apps on eskiu-packages/ui. use_location gives a component
 // the latest position while it is mounted; the platform's location service measures it
-// (CoreLocation on iOS, LocationManager on Android, navigator.geolocation on the web), after
-// asking the user for permission the first time.
+// (CoreLocation on iOS and macOS, LocationManager on Android, navigator.geolocation on the web,
+// GeoClue on Linux), after asking the user for permission the first time. Windows has none
+// yet: there every use is LocationUnavailable.
 import <string>;
 import <list>;
 import <math>;
@@ -24,7 +25,8 @@ struct Location {
     int64 time;
 }
 
-// The platform's side (native/ios, native/android, native/web): start measuring, as precisely
+// The platform's side (native/ios, native/android, native/web, native/macos, native/linux,
+// native/windows): start measuring, as precisely
 // as the device can when `precise` is 1 (else to about a hundred meters), and stop. Positions
 // and failures come back on the "location" channel: "fix LATITUDE LONGITUDE ACCURACY ALTITUDE
 // SPEED HEADING TIME" (ALTITUDE "-" when unknown), "denied" or "unavailable".

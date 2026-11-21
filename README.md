@@ -21,8 +21,19 @@
 ---
 
 A component calls `use_location` and gets the latest position while it is mounted; the
-platform's own service measures it: CoreLocation on iOS, `LocationManager` on Android and
-`navigator.geolocation` on the web. The first use asks the user for permission.
+platform's own service measures it: CoreLocation on iOS and macOS, `LocationManager` on
+Android, `navigator.geolocation` on the web and GeoClue on Linux. The first use asks the user
+for permission. Windows has no location yet: there `use_location` says `LocationUnavailable`.
+
+| Platform | Position from |
+|---|---|
+| iOS, macOS | CoreLocation |
+| Android | `LocationManager` |
+| Web | `navigator.geolocation` |
+| Linux | GeoClue 2 over D-Bus |
+| Windows | none yet (`LocationUnavailable`) |
+
+[docs/README.md](docs/README.md#platforms) has the details.
 
 ![The Where example on iOS, Android and the web: the position, its accuracy and the distance to four cities](assets/where.png)
 
@@ -35,7 +46,7 @@ eskiuc add location --git https://github.com/eskiu-packages/ui-location --rev v0
 ```
 
 The package brings what each platform needs through its `ui.toml`: the CoreLocation framework
-and a usage text on iOS, the location permissions on Android. Put your own text in the app's
+and a usage text on iOS and macOS, the location permissions on Android. Put your own text in the app's
 `ui.toml`, which wins over the package's:
 
 ```toml
