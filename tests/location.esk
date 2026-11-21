@@ -13,6 +13,10 @@ void location_start(int precise) { starts++; precise_asked = precise; }
 
 void location_stop() { stops++; }
 
+// What the desktop's native side says about the platform (the test runs on a desktop).
+int supported_answer = 1;
+int location_native_supported() { return supported_answer; }
+
 // The texts the last commits set, by node id.
 String shown;
 
@@ -95,8 +99,10 @@ int main() {
     double km = location_distance(paris, london) / 1000.0;
     check(km > 343.0 && km < 344.5, "the distance from Paris to London");
     check(location_distance(paris, paris) == 0.0, "no distance to itself");
-    // No location service on the desktop, said before use_location mounts.
-    check(!location_supported(), "no location on the desktop");
+    // On macOS and Linux the native side answers, before use_location mounts.
+    check(location_supported(), "location on this desktop");
+    supported_answer = 0;
+    check(!location_supported(), "none where the native side says so");
     printf("PASS location\n");
     String_free(&shown);
     return 0;

@@ -65,18 +65,20 @@ void location_read(string payload) {
     parts.free();
 }
 
-// The platform's side of location_supported (native/android, native/web): 1 when the device
-// has a location service (Android's FEATURE_LOCATION, the browser's navigator.geolocation).
+// The platform's side of location_supported (native/android, native/web, native/macos,
+// native/linux): 1 when the device has a location service (Android's FEATURE_LOCATION, the
+// browser's navigator.geolocation, CoreLocation on macOS, GeoClue on Linux).
 extern int location_native_supported();
 
 // Whether the device can measure where it is, known before use_location mounts: true on iOS
-// (every iPhone has location services), on Android with FEATURE_LOCATION and in a browser
-// with navigator.geolocation; false on the desktop. True does not mean the user allowed it or
+// (every iPhone has location services) and macOS, on Android with FEATURE_LOCATION, in a
+// browser with navigator.geolocation and on Linux where GeoClue is installed; false on
+// Windows. True does not mean the user allowed it or
 // that the service is on: use_location says LocationDenied or LocationUnavailable then.
 bool location_supported() {
 #if defined(TARGET_OS_IOS)
     return true;
-#elif defined(__ANDROID__) || defined(__wasm__)
+#elif defined(__ANDROID__) || defined(__wasm__) || defined(__APPLE__) || defined(__linux__)
     return location_native_supported() != 0;
 #else
     return false;

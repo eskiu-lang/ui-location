@@ -79,7 +79,7 @@ void Here() {
 | `use_location(bool precise)` | The latest position while the scope is mounted; the scope renders again with each new one. The first component to mount starts the service and the last one to unmount stops it. `precise` asks for the device's best accuracy rather than about a hundred meters, which saves power. |
 | `Location` | `status`, `latitude` and `longitude` (degrees), `accuracy` (meters), `has_altitude` and `altitude` (meters), `speed` (m/s) and `heading` (degrees from north, -1 when unknown), `time` (ms since 1970). |
 | `LocationStatus` | `LocationWaiting` until the first position, then `LocationReady`, or `LocationDenied` (no permission) or `LocationUnavailable` (the service is off or cannot find the device). |
-| `location_supported()` | Whether the device can measure where it is (iOS; Android with a location service; a browser with `navigator.geolocation`; not the desktop), before `use_location` mounts. It does not ask for permission. |
+| `location_supported()` | Whether the device can measure where it is (iOS and macOS; Android with a location service; a browser with `navigator.geolocation`; Linux with GeoClue; not Windows), before `use_location` mounts. It does not ask for permission. |
 | `location_last()` | The latest position or failure, without subscribing. |
 | `location_distance(a, b)` | The distance between two positions in meters, over the Earth's surface. |
 

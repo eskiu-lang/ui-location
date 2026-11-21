@@ -110,6 +110,39 @@ static void gotClient(GObject *source, GAsyncResult *result, gpointer data) {
     if (running && GPOINTER_TO_UINT(data) == generation) startClient();
 }
 
+// location_supported: GeoClue runs or D-Bus can start it on the system bus. Asked once.
+int location_native_supported(void) {
+    static int answer = -1;
+    if (answer >= 0) return answer;
+    answer = 0;
+    GDBusConnection *system = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, NULL);
+    if (!system) return 0;
+    const char *calls[] = {"NameHasOwner", "ListActivatableNames"};
+    for (int i = 0; i < 2 && !answer; i++) {
+        GVariant *reply = g_dbus_connection_call_sync(system, "org.freedesktop.DBus", "/org/freedesktop/DBus",
+                                                      "org.freedesktop.DBus", calls[i],
+                                                      i == 0 ? g_variant_new("(s)", kName) : NULL, NULL,
+                                                      G_DBUS_CALL_FLAGS_NONE, 2000, NULL, NULL);
+        if (!reply) continue;
+        if (i == 0) {
+            gboolean owned = FALSE;
+            g_variant_get(reply, "(b)", &owned);
+            answer = owned ? 1 : 0;
+        } else {
+            GVariantIter *names = NULL;
+            const char *name = NULL;
+            g_variant_get(reply, "(as)", &names);
+            while (g_variant_iter_next(names, "&s", &name)) {
+                if (!strcmp(name, kName)) answer = 1;
+            }
+            g_variant_iter_free(names);
+        }
+        g_variant_unref(reply);
+    }
+    g_object_unref(system);
+    return answer;
+}
+
 void location_start(int wanted) {
     running = 1;
     precise = wanted;

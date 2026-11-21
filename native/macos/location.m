@@ -43,6 +43,10 @@ static EskiuLocation *shared;
 }
 @end
 
+// location_supported: every Mac has Location Services (whether they are on is
+// use_location's to say).
+int location_native_supported(void) { return 1; }
+
 void location_start(int precise) {
     if (!shared) {
         shared = [EskiuLocation new];
